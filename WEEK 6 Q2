@@ -1,0 +1,92 @@
+#include <pthread.h>
+#include <stdio.h>
+#include <semaphore.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+void fun1();
+void fun2();
+
+int shared = 1;
+sem_t s;
+
+int main() {
+    if (sem_init(&s, 0, 1) != 0) {
+        perror("Semaphore initialization failed");
+        return EXIT_FAILURE;
+    }
+
+    pthread_t thread1, thread2;
+
+    if (pthread_create(&thread1, NULL, (void *)fun1, NULL) != 0) {
+        perror("Failed to create thread1");
+        return EXIT_FAILURE;
+    }
+    sleep(1);
+    if (pthread_create(&thread2, NULL, (void *)fun2, NULL) != 0) {
+        perror("Failed to create thread2");
+        return EXIT_FAILURE;
+    }
+
+    pthread_join(thread1, NULL);
+    pthread_join(thread2, NULL);
+
+    printf("Final value of shared is %d\n", shared);
+
+    sem_destroy(&s);
+    return 0;
+}
+
+void fun1() {
+    int x;
+
+    if (sem_wait(&s) != 0) {
+        perror("Thread1: sem_wait failed");
+        return;
+    }
+    x = shared;
+    printf("Thread1 reads the value as %d\n", x);
+    x++;
+    printf("Local updation by Thread1: %d\n", x);
+
+    sleep(1);
+
+    shared = x;
+    printf("Value of shared variable updated by Thread1 is: %d\n", shared);
+
+    if (sem_post(&s) != 0) {
+        perror("Thread1: sem_post failed");
+    }
+}
+
+void fun2() {
+    int y;
+
+    if (sem_wait(&s) != 0) {
+        perror("Thread2: sem_wait failed");
+        return;
+    }
+    y = shared;
+    printf("Thread2 reads the value as %d\n", y);
+    y--;
+    printf("Local updation by Thread2: %d\n", y);
+
+    sleep(1);
+
+    shared = y;
+    printf("Value of shared variable updated by Thread2 is: %d\n", shared);
+
+    if (sem_post(&s) != 0) {
+        perror("Thread2: sem_post failed");
+    }
+}
+
+
+OUTPUT
+Thread1 reads the value as 1
+Local updation by Thread1: 2
+Thread2 reads the value as 1
+Local updation by Thread2: 0
+Value of shared variable updated by Thread2 is: 0
+Value of shared variable updated by Thread1 is: 2
+Final value of shared is 2
