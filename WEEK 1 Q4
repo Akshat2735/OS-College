@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <pattern>"
+    exit 1
+fi
+
+PATTERN=$1
+
+for file in *; do
+    if [ -f "$file" ]; then
+        if grep -q "$PATTERN" "$file"; then
+            echo "$file: Pattern is available"
+        else
+            echo "$file: Pattern is not available"
+        fi
+    fi
+done
