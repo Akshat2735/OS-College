@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# List only the subdirectories in the current working directory
+for dir in */; do
+    echo "${dir%/}"  # Remove the trailing slash
+done
