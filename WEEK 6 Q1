@@ -1,0 +1,79 @@
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+void cleanup(int semid) {
+    semctl(semid, 0, IPC_RMID);
+}
+
+int main() {
+    int pid, semid;
+    struct sembuf sop;
+
+    // Create a semaphore set with 1 semaphore
+    semid = semget((key_t)6, 1, IPC_CREAT | 0666);
+    if (semid == -1) {
+        perror("semget");
+        return 1;
+    }
+
+    // Fork the process
+    pid = fork();
+    if (pid == -1) {
+        perror("fork");
+        cleanup(semid);
+        return 1;
+    }
+
+    sop.sem_num = 0; // Index of the semaphore
+    sop.sem_flg = 0; // Default flags
+
+    if (pid != 0) { // Parent process
+        sleep(1);
+        printf("The Parent waits for WAIT signal\n");
+
+        sop.sem_op = -1; // Wait (decrement)
+        if (semop(semid, &sop, 1) == -1) {
+            perror("semop");
+            cleanup(semid);
+            return 1;
+        }
+
+        printf("The Parent WAKED UP & doing her job\n");
+        sleep(10);
+        printf("Parent Over\n");
+    } else { // Child process
+        printf("The Child sets WAIT signal & doing her job\n");
+
+        if (semctl(semid, 0, SETVAL, 1) == -1) {
+            perror("semctl");
+            cleanup(semid);
+            return 1;
+        }
+
+        sleep(10);
+        printf("The Child sets WAKE signal & finished her job\n");
+
+        sop.sem_op = 0; // Set the semaphore back to 0 (optional, since it's done in semctl)
+        if (semop(semid, &sop, 1) == -1) {
+            perror("semop");
+            cleanup(semid);
+            return 1;
+        }
+
+        printf("Child Over\n");
+    }
+
+    cleanup(semid); // Clean up semaphore
+    return 0;
+}
+
+OUTPUT
+The Child sets WAIT signal & doing her job
+The Parent waits for WAIT signal
+The Child sets WAKE signal & finished her job
+The Parent WAKED UP & doing her job
+Parent Over
+Child Over
