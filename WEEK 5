@@ -1,0 +1,62 @@
+#include <stdio.h>
+#include <pthread.h>
+
+// Global variables to store sums
+int sum_odd = 0;
+int sum_even = 0;
+int sum_natural = 0;
+
+// Function to calculate sum of odd numbers
+void* calculate_odd_sum(void* arg) {
+    int n = *((int*)arg);
+    for (int i = 1; i <= n; i++) {
+        if (i % 2 != 0) {
+            sum_odd += i;
+        }
+    }
+    return NULL;
+}
+
+// Function to calculate sum of even numbers
+void* calculate_even_sum(void* arg) {
+    int n = *((int*)arg);
+    for (int i = 1; i <= n; i++) {
+        if (i % 2 == 0) {
+            sum_even += i;
+        }
+    }
+    return NULL;
+}
+
+// Function to calculate sum of natural numbers
+void* calculate_natural_sum(void* arg) {
+    int n = *((int*)arg);
+    for (int i = 1; i <= n; i++) {
+        sum_natural += i;
+    }
+    return NULL;
+}
+
+int main() {
+    int n = 10;  // Set the value of n as required
+
+    // Thread identifiers
+    pthread_t thread1, thread2, thread3;
+
+    // Create threads
+    pthread_create(&thread1, NULL, calculate_odd_sum, &n);
+    pthread_create(&thread2, NULL, calculate_even_sum, &n);
+    pthread_create(&thread3, NULL, calculate_natural_sum, &n);
+
+    // Wait for all threads to finish
+    pthread_join(thread1, NULL);
+    pthread_join(thread2, NULL);
+    pthread_join(thread3, NULL);
+
+    // Display results
+    printf("Sum of odd numbers: %d\n", sum_odd);
+    printf("Sum of even numbers: %d\n", sum_even);
+    printf("Sum of natural numbers: %d\n", sum_natural);
+
+    return 0;
+}
