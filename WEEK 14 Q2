@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_BLOCKS 10
+
+struct IndexBlock {
+    int block_no;
+};
+
+int main() {
+    int disk[MAX_BLOCKS]; // Simulate disk space
+    struct IndexBlock index_block[MAX_BLOCKS]; // Index block
+    int file_size, block_size, num_blocks;
+
+    // Initialize disk and index block
+    for (int i = 0; i < MAX_BLOCKS; i++) {
+        disk[i] = -1; // Mark as unused
+        index_block[i].block_no = -1;
+    }
+
+    // Get file size and block size from user
+    printf("Enter file size in bytes: ");
+    scanf("%d", &file_size);
+    printf("Enter block size in bytes: ");
+    scanf("%d", &block_size);
+
+    // Calculate number of blocks required
+    num_blocks = (file_size + block_size - 1) / block_size;
+
+    // Allocate blocks and update index block
+    int free_block = 0;
+    for (int i = 0; i < num_blocks; i++) {
+        while (disk[free_block] != -1) {
+            free_block++;
+            if (free_block >= MAX_BLOCKS) {
+                printf("No more free space\n");
+                return 1;
+            }
+        }
+        index_block[i].block_no = free_block;
+        disk[free_block] = 1; // Mark as used
+    }
+
+    // Print index block
+    printf("\nIndex Block:\n");
+    for (int i = 0; i < num_blocks; i++) {
+        printf("Block %d: %d\n", i, index_block[i].block_no);
+    }
+
+    // Simulate reading a block
+    int block_to_read;
+    printf("\nEnter block number to read: ");
+    scanf("%d", &block_to_read);
+
+    if (block_to_read >= num_blocks) {
+        printf("Invalid block number\n");
+    } else {
+        int block_number = index_block[block_to_read].block_no;
+        printf("Data in block %d: %d\n", block_to_read, disk[block_number]);
+    }
+
+    return 0;
+}
+
+
+SAMPLE OUTPUT
+Enter file size in bytes: 1000
+Enter block size in bytes: 256
+
+Index Block:
+Block 0: 0
+Block 1: 1
+Block 2: 2
+Block 3: 3
+
+Enter block number to read: 2
+Data in block 2: 1
