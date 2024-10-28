@@ -1,0 +1,72 @@
+#include <stdio.h>
+
+#define MAX_PROCESSES 10
+
+void roundRobin(int n, int bt[], int wt[], int tat[], int quantum) {
+    int rem_bt[n], t = 0, i;
+
+    for (i = 0; i < n; i++) {
+        rem_bt[i] = bt[i];
+    }
+
+    while (1) {
+        bool done = true;
+        for (i = 0; i < n; i++) {
+            if (rem_bt[i] > 0) {
+                done = false;
+
+                if (rem_bt[i] > quantum) {
+                    t += quantum;
+                    rem_bt[i] -= quantum;
+                } else {
+                    t += rem_bt[i];
+                    wt[i] = t - bt[i];
+                    tat[i] = t;
+                    rem_bt[i] = 0;
+                }
+            }
+        }
+
+        if (done) {
+            break;
+        }
+    }
+}
+
+int main() {
+    int n, bt[MAX_PROCESSES], wt[MAX_PROCESSES], tat[MAX_PROCESSES], quantum;
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    printf("Enter the burst time of each process:\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &bt[i]);
+    }
+
+    printf("Enter the time quantum: ");
+    scanf("%d", &quantum);
+
+    roundRobin(n, bt, wt, tat, quantum);
+
+    printf("\nProcess\tBurst Time\tWaiting Time\tTurnaround Time\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t\t%d\t\t%d\t\t%d\n", i + 1, bt[i], wt[i], tat[i]);
+    }
+
+    return 0;
+}
+
+
+SAMPLE OUTPUT
+Enter the number of processes: 3
+Enter the burst time of each process:
+10
+5
+8
+Enter the time quantum: 2
+
+Process   Burst Time  Waiting Time  Turnaround Time
+1           10          13          23
+2           5           5           10
+3           8           17          25
